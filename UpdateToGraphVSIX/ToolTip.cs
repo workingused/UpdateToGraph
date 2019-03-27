@@ -43,9 +43,9 @@ namespace UpdateToGraphVSIX
         {
             applicableToSpan = null;
             string shortMethodSignature = string.Empty;
-            if (qiContent.Count > 0 && qiContent[0] is ContainerElement element)
+            if (qiContent.Count > 0)
             {
-                shortMethodSignature = GetEWSMethodSignature(element);
+                shortMethodSignature = GetEWSMethodSignature(qiContent[0].ToString());
             }
 
             ApiMappingItem mappingItem = ExchangeMapToGraph.MatchAccordinglyGraph(shortMethodSignature);
@@ -87,7 +87,7 @@ namespace UpdateToGraphVSIX
             qiContent.Add(GetCodeSample(mappingItem.EWSMethodSignature));
             qiContent.Add(GetSampleProject(mappingItem.EWSApiName));
             qiContent.Add(GetToGraphExplorer());
-
+            
             //        }
             //        else
             //            qiContent.Add("");
@@ -109,21 +109,9 @@ namespace UpdateToGraphVSIX
             }
         }
 
-        private string GetEWSMethodSignature(ContainerElement element)
+        private string GetEWSMethodSignature(string methodSignature)
         {
-            string methodSignature = string.Empty;
-            element = element?.Elements?.
-               FirstOrDefault(m => m is ContainerElement) as ContainerElement;
-
-            ClassifiedTextElement textElements = element?.Elements?.
-                 FirstOrDefault(m => m is ClassifiedTextElement) as ClassifiedTextElement;
-
-
-            string shortMethodSignature = textElements?.Runs?.Skip(2)?.Take(3)?.Aggregate("",
-                (a, b) => a + b.Text);
-
-            return shortMethodSignature;
-
+            string shortMethodSignature = string.Empty;
             int indexOfNewLine = methodSignature.IndexOf(Environment.NewLine);
             if (indexOfNewLine > -1)
             {
@@ -163,7 +151,7 @@ namespace UpdateToGraphVSIX
         private UIElement GetCodeSample(string EWSMethodSignature)
         {
             Regex regex = new Regex($"(?<=//{EWSMethodSignature})[\\s\\S]*?(?=//[A-Z])");
-
+           
             string text = regex.Match(Properties.Resources.api).Value;
             text = text.Trim();
             var helpButton = new TextBox
@@ -197,8 +185,7 @@ namespace UpdateToGraphVSIX
                 TextDecorations = TextDecorations.Underline,
                 Cursor = System.Windows.Input.Cursors.Hand
             };
-            helpButton.MouseDown += (sender, e) =>
-            {
+            helpButton.MouseDown += (sender,e)=> {
                 System.Diagnostics.Process.Start("https://developer.microsoft.com/en-us/graph/graph-explorer");
             };
             return helpButton;
