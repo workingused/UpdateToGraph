@@ -98,7 +98,7 @@ namespace UpdateToGraphVSIX
 
             try
             {
-                result = ExchangeMapToGraphList.FirstOrDefault(x => x.EWSMethodSignature.Equals(EWSMethodSignature));
+                result = ExchangeMapToGraphList.FirstOrDefault(x => x.EWSMethodSignature.Contains(EWSMethodSignature));
             }
             catch (Exception ex)
             {

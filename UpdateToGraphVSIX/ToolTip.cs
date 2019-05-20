@@ -22,6 +22,7 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace UpdateToGraphVSIX
 {
+    [Obsolete]
     internal class TestQuickInfoSource : IQuickInfoSource
     {
         private TestQuickInfoSourceProvider m_provider;
@@ -43,9 +44,9 @@ namespace UpdateToGraphVSIX
         {
             applicableToSpan = null;
             string shortMethodSignature = string.Empty;
-            if (qiContent.Count > 0)
+            if (qiContent.Count > 0 && qiContent[0] is ContainerElement element)
             {
-                shortMethodSignature = GetEWSMethodSignature(qiContent[0].ToString());
+                shortMethodSignature = GetEWSMethodSignature(element);
             }
 
             ApiMappingItem mappingItem = ExchangeMapToGraph.MatchAccordinglyGraph(shortMethodSignature);
@@ -87,7 +88,7 @@ namespace UpdateToGraphVSIX
             qiContent.Add(GetCodeSample(mappingItem.EWSMethodSignature));
             qiContent.Add(GetSampleProject(mappingItem.EWSApiName));
             qiContent.Add(GetToGraphExplorer());
-            
+
             //        }
             //        else
             //            qiContent.Add("");
@@ -109,9 +110,21 @@ namespace UpdateToGraphVSIX
             }
         }
 
-        private string GetEWSMethodSignature(string methodSignature)
+        private string GetEWSMethodSignature(ContainerElement element)
         {
-            string shortMethodSignature = string.Empty;
+            string methodSignature = string.Empty;
+            element = element?.Elements?.
+               FirstOrDefault(m => m is ContainerElement) as ContainerElement;
+
+            ClassifiedTextElement textElements = element?.Elements?.
+                 FirstOrDefault(m => m is ClassifiedTextElement) as ClassifiedTextElement;
+
+
+            string shortMethodSignature = textElements?.Runs?.Skip(2)?.Take(3)?.Aggregate("",
+                (a, b) => a + b.Text);
+
+            return shortMethodSignature;
+
             int indexOfNewLine = methodSignature.IndexOf(Environment.NewLine);
             if (indexOfNewLine > -1)
             {
@@ -151,7 +164,7 @@ namespace UpdateToGraphVSIX
         private UIElement GetCodeSample(string EWSMethodSignature)
         {
             Regex regex = new Regex($"(?<=//{EWSMethodSignature})[\\s\\S]*?(?=//[A-Z])");
-           
+
             string text = regex.Match(Properties.Resources.api).Value;
             text = text.Trim();
             var helpButton = new TextBox
@@ -185,7 +198,8 @@ namespace UpdateToGraphVSIX
                 TextDecorations = TextDecorations.Underline,
                 Cursor = System.Windows.Input.Cursors.Hand
             };
-            helpButton.MouseDown += (sender,e)=> {
+            helpButton.MouseDown += (sender, e) =>
+            {
                 System.Diagnostics.Process.Start("https://developer.microsoft.com/en-us/graph/graph-explorer");
             };
             return helpButton;
@@ -283,6 +297,7 @@ namespace UpdateToGraphVSIX
         }
     }
 
+    [Obsolete]
     [Export(typeof(IQuickInfoSourceProvider))]
     [Name("ToolTip QuickInfo Source")]
     [Order(After = "Default Quick Info Presenter")]
@@ -307,7 +322,10 @@ namespace UpdateToGraphVSIX
         private ITextView m_textView;
         private IList<ITextBuffer> m_subjectBuffers;
         private TestQuickInfoControllerProvider m_provider;
+        [Obsolete]
         private IQuickInfoSession m_session;
+
+        [Obsolete]
         internal TestQuickInfoController(ITextView textView, IList<ITextBuffer> subjectBuffers, TestQuickInfoControllerProvider provider)
         {
             m_textView = textView;
@@ -316,6 +334,8 @@ namespace UpdateToGraphVSIX
 
             m_textView.MouseHover += this.OnTextViewMouseHover;
         }
+
+        [Obsolete]
         private void OnTextViewMouseHover(object sender, MouseHoverEventArgs e)
         {
             //find the mouse position by mapping down to the subject buffer
@@ -335,6 +355,8 @@ namespace UpdateToGraphVSIX
                 }
             }
         }
+
+        [Obsolete]
         public void Detach(ITextView textView)
         {
             if (m_textView == textView)
@@ -357,7 +379,10 @@ namespace UpdateToGraphVSIX
     internal class TestQuickInfoControllerProvider : IIntellisenseControllerProvider
     {
         [Import]
+        [Obsolete]
         internal IQuickInfoBroker QuickInfoBroker { get; set; }
+
+        [Obsolete]
         public IIntellisenseController TryCreateIntellisenseController(ITextView textView, IList<ITextBuffer> subjectBuffers)
         {
             return new TestQuickInfoController(textView, subjectBuffers, this);
